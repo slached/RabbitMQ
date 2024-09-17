@@ -9,21 +9,37 @@ amqp.connect(process.env.RABBIT_MQ_URI, function (error0, connection) {
       throw error1;
     }
 
-    var queue = "hello";
+    var queue = "task_queue";
 
+    // if durable true queue and messages not deleted
+    // although rabbit crashes
     channel.assertQueue(queue, {
-      durable: false,
+      durable: true,
     });
+    // one consumer only takes one message at once till message acknowledgment is finish
+    channel.prefetch(1);
 
     console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
     channel.consume(
       queue,
       function (msg) {
+        const secs = msg.content.toString().split(".").length - 1;
+
         console.log(" [x] Received %s", msg.content.toString());
+        setTimeout(() => {
+          console.log("Done");
+          // we send manual ack for rabbit gets job is done
+          try {
+            channel.ack(msg);
+          } catch (error) {
+            channel.nack(error);
+          }
+        }, secs * 1000);
       },
       {
-        noAck: true,
+        // manual acknowledgment mode,
+        noAck: false,
       }
     );
   });

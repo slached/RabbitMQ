@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon app.js"
+    "createMessage": "nodemon createMessage.js",
+    "listenMessage": "nodemon listenMessage.js"
   },
   "keywords": [],
   "author": "",
