@@ -1,5 +1,4 @@
 var amqp = require("amqplib/callback_api");
-const { error } = require("console");
 
 amqp.connect(process.env.RABBIT_MQ_URI, function (error0, connection) {
   if (error0) {
@@ -9,11 +8,11 @@ amqp.connect(process.env.RABBIT_MQ_URI, function (error0, connection) {
     if (error1) {
       throw error1;
     }
-    const exchange = "direct_logs";
+    const exchange = "animals";
     // in console we specify binding names that queue have
-    const args = process.argv.slice(2);
-
-    channel.assertExchange(exchange, "direct", {
+    const routes = process.argv.slice(2);
+    
+    channel.assertExchange(exchange, "topic", {
       durable: true,
     });
 
@@ -27,10 +26,9 @@ amqp.connect(process.env.RABBIT_MQ_URI, function (error0, connection) {
           throw error2;
         }
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-        
-        // In here 3. params is name of the binding
-        args.forEach((severity) => {
-          channel.bindQueue(q.queue, exchange, severity);
+
+        routes.forEach((route_key) => {
+          channel.bindQueue(q.queue, exchange, route_key);
         });
 
         channel.consume(
